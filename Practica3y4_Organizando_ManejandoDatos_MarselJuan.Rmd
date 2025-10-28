@@ -235,7 +235,15 @@ Obtén la versión _tidy_ de este conjunto de datos usando `pivot_longer`.
 Consejo: puedes eliminar el prefijo `wk` de las semanas mediante el argumento `names_prefix`. Opcionalmente puedes crear una columna `date` a partir de `date.entered`, sumando las semanas transcurridas desde la fecha de entrada en lista.
 
 ```{r}
-pivot_longer(data = raw, names_to = "week", values_to = "rank", cols = starts_with("wk"))
+#Falta hacer bien
+df_tidy <- raw %>% pivot_longer(names_to = "week", values_to = "rank", cols = starts_with("wk"),names_prefix = "wk")
+
+
+#df_tidy <- df_tidy %>%
+  mutate(semanas_top = as.Date(date.entered) + weeks(as.numeric(week) - 1))
+
+#df_tidy
+
 ```
 
 
@@ -257,8 +265,17 @@ Para pasar a formato _tidy_ necesitamos realizar dos operaciones en este caso. E
 Convierte el conjunto de datos TB en _tidy_ utilizando `gather` y `separate`.
 
 ```{r}
+rm(list=ls())
+load('data/tb.Rdata')
+raw_clean <- raw%>%gather(key = "sex",value="cases",-country,-year) %>% separate(col="sex",into = c("sex","age"), sep=1)%>%drop_na() %>% mutate(age=as.factor(age))
 
+View(raw_clean)
 ```
+```{r}
+levels(clean$age)
+levels(raw_clean$age)
+```
+
 
 
 ## Variables almacenadas tanto en filas como en columnas
@@ -279,7 +296,11 @@ Para obtener la versión _tidy_ primero juntamos todos los días en una variable
 Obtén la versión _tidy_ del conjunto de datos `weather` utilizando las funciones `pivot_longer` y `pivot_wider`. Además cambiaremos las columnas `year`, `month` y `dia` por una única variable `fecha`. Para que la operación `pivot_wider` no de error tendremos que eliminar los NA's cuando usemos `pivot_longer`.
 
 ```{r}
+rm(list=ls())
+load("data/weather.RData")
+raw_clean <- raw %>% pivot_longer(names_to= "dia", values_to="valor", cols=starts_with("d"), names_prefix = "d") %>% pivot_wider(names_from = element,values_from = valor) %>% drop_na() %>% mutate(date = as.Date(paste0(year,"/",month,"/",dia),format="%Y/%m/%d")) %>% select(id,date,tmin,tmax)
 
+raw_clean
 
 ```
 
@@ -326,7 +347,8 @@ load("./data/VuelosNY.Rdata")
 Muestra las primeras muestras de ambos data frames para hacerte una idea de las variables que contienen. ¿Qué diferencia existe entre la información mostrada en ambos data frames?
 
 ```{r }
-
+head(flights)
+head(planes)
 ```
 
 ### Ejercicio 6
@@ -336,7 +358,10 @@ En nuestro estudio queremos aplicar una serie de criterios de exclusión sobre l
 * Nota: Revisar el uso de la función filter vista en clase y tener en cuenta los operadores de comparación: igual ==, distinto !=, mayor >, mayor o igual >=, menor <, menor o igual <=.
 
 ```{r }
-
+planes.f <- planes %>% 
+  filter(!str_detect(str_to_lower(manufacturer),pattern =".*douglas.*")) %>% 
+  filter(between(seats,90,210)) %>% 
+  mutate(manufacturer= ifelse(str_detect(str_to_lower(manufacturer),"airbus"),"AIRBUS COMP", manufacturer))
 
 
 ```
@@ -347,7 +372,7 @@ En nuestro estudio queremos aplicar una serie de criterios de exclusión sobre l
 Crea un data frame denominado `flights.f` que contenga los vuelos que involucren a los aviones presentes en el data frame `planes.f`. Para ello utiliza algunas de las funciones de **XXX_join** y la variable `tailnum` que es común en ambos data frames. 
 
 ```{r }
-
+flights %>% 
 
 ```
 
